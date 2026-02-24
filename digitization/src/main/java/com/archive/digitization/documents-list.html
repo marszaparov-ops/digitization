@@ -37,10 +37,11 @@
         </tr>
         </thead>
         <tbody>
-        <<tr th:each="doc : ${documents}">
-            <td th:text="${doc.id}"></td>
-            <td th:text="${doc.title}"></td>
-            <td th:text="${doc.fileName}"></td> <td th:text="${doc.fileType}"></td>
+        <tr th:each="doc : ${documents}">
+            <td th:text="${doc.id}">1</td>
+            <td th:text="${doc.title}">Заголовок</td>
+            <td th:text="${doc.fileName}">file.pdf</td>
+            <td th:text="${doc.fileType}">PDF</td>
         </tr>
         </tbody>
     </table>
