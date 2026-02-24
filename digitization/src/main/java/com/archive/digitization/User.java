@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "USERS")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,10 +16,8 @@ public class User {
     private String role;
     private boolean enabled = true;
 
-    // Пустой конструктор
     public User() {}
 
-    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

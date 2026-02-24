@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -12,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -21,16 +22,16 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/fix-admin", "/setup-admin", "/css/**").permitAll()
+                        .requestMatchers("/login", "/fix-admin", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/archive/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login") // Убедись, что у тебя есть контроллер для /login
-                        .defaultSuccessUrl("/archive", true) // Принудительный переход на главную
-                        .failureUrl("/login?error=true") // Куда идти при ошибке
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/archive", true)
                         .permitAll()
                 )
-                .logout(logout -> logout.permitAll());
+                .logout(logout -> logout.logoutSuccessUrl("/login").permitAll());
 
         return http.build();
     }

@@ -14,24 +14,18 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Ищем пользователя
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        // Проверяем роль
-        String roleName = user.getRole();
-        if (roleName == null) {
-            roleName = "USER";
-        }
-        if (!roleName.startsWith("ROLE_")) {
-            roleName = "ROLE_" + roleName;
+        String role = user.getRole();
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
         }
 
-        // Собираем объект User для Spring Security
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
                 .password(user.getPassword())
-                .authorities(roleName)
+                .authorities(role)
                 .disabled(!user.isEnabled())
                 .build();
     }
