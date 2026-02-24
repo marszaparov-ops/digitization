@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @Controller
 public class ArchiveController {
@@ -20,17 +22,22 @@ public class ArchiveController {
     @Autowired
     private DocumentRepository documentRepository;
 
-    // Используем один путь для всех файлов
-    private final String UPLOAD_DIR = "E:/Work/archive/archive-storage/";
+    // Папка создастся автоматически внутри твоего проекта
+    private final String UPLOAD_DIR = "archive-storage/";
 
     @GetMapping("/archive")
-    public String listDocuments(Model model) {
-        List<Document> docs = documentRepository.findAll();
-        model.addAttribute("documents", docs);
+    public String listDocuments(Model model,
+                                @RequestParam(defaultValue = "0") int page) {
+        int pageSize = 10; // Сколько строк выводить на одной странице
+        Page<Document> docPage = documentRepository.findAll(PageRequest.of(page, pageSize));
+
+        model.addAttribute("documents", docPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", docPage.getTotalPages());
+
         return "archive";
     }
 
-    // ИСПРАВЛЕННЫЙ МЕТОД: принимает файл и данные из формы
     @PostMapping("/archive/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
                              @RequestParam(value = "title", required = false) String title,
@@ -41,7 +48,7 @@ public class ArchiveController {
             if (file != null && !file.isEmpty()) {
                 Path uploadPath = Paths.get(UPLOAD_DIR);
                 if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath); // Создаем папки, если их нет
+                    Files.createDirectories(uploadPath);
                 }
 
                 String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
@@ -49,7 +56,6 @@ public class ArchiveController {
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
                 Document doc = new Document();
-                // Если заголовок пустой, берем имя файла
                 doc.setTitle((title == null || title.isEmpty()) ? file.getOriginalFilename() : title);
                 doc.setDocNumber(docNumber);
                 doc.setCategory(category);
@@ -60,12 +66,8 @@ public class ArchiveController {
                 documentRepository.save(doc);
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            // Если ошибка — выводим её в консоль, чтобы мы видели причину
-            System.out.println("ОШИБКА ЗАГРУЗКИ: " + e.getMessage());
+            System.err.println("ОШИБКА: " + e.getMessage());
         }
-
-        // Возвращаемся строго на главную страницу архива
         return "redirect:/archive";
     }
 
@@ -76,15 +78,8 @@ public class ArchiveController {
             Path path = Paths.get(UPLOAD_DIR).resolve(doc.getFileName());
             Resource resource = new UrlResource(path.toUri());
 
-            // Определяем тип файла (Content-Type)
-            String contentType = doc.getFileType();
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
-
             return ResponseEntity.ok()
-                    .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
-                    // "inline" заставляет браузер открыть файл, а не качать его
+                    .contentType(org.springframework.http.MediaType.parseMediaType(doc.getFileType()))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + doc.getFileName() + "\"")
                     .body(resource);
         } catch (Exception e) {
@@ -93,23 +88,22 @@ public class ArchiveController {
     }
 
     @PostMapping("/archive/delete/{id}")
-    public String deleteDocument(@PathVariable Long id) {
-        try {
-            Document doc = documentRepository.findById(id).orElse(null);
-            if (doc != null) {
-                Files.deleteIfExists(Paths.get(UPLOAD_DIR).resolve(doc.getFileName()));
-                documentRepository.delete(doc);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public String deleteDocument(@PathVariable Long id, Principal principal) {
+        Document doc = documentRepository.findById(id).orElse(null);
+        if (doc != null) {
+            // Записываем КТО и ЧТО удалил перед самим удалением
+            String logInfo = "Удалил документ: " + doc.getTitle() + " (№ " + doc.getDocNumber() + ")";
+            actionLogRepository.save(new ActionLog(principal.getName(), "УДАЛЕНИЕ", logInfo));
+
+            documentRepository.delete(doc);
         }
         return "redirect:/archive";
     }
 
-    // Метод для кнопки сканера (чтобы не было 404)
     @GetMapping("/archive/scan-refresh")
     public String scanRefresh() {
-        System.out.println("Запрос на обновление данных со сканера...");
         return "redirect:/archive";
     }
 }
+@Autowired
+private ActionLogRepository actionLogRepository; // Теперь контроллер видит таблицу логов

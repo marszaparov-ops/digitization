@@ -2,84 +2,143 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Цифровой Архив</title>
+    <title>Цифровой Архив | Панель управления</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; display: flex; flex-direction: column; height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Верхняя панель */
-        .header { background: #2196F3; color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        /* Левая панель (Sidebar) */
+        .sidebar { width: 250px; background: #2c3e50; color: white; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar-header { padding: 20px; background: #1a252f; text-align: center; font-size: 1.2em; font-weight: bold; }
 
-        /* Контейнер таблицы с ползунком */
-        .main-content { flex: 1; padding: 20px; overflow: hidden; display: flex; flex-direction: column; }
-        .table-wrapper { flex: 1; overflow-y: auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .nav-menu { flex: 1; padding: 10px 0; }
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .nav-item:hover { background: #34495e; color: white; border-left: 4px solid #2196F3; }
+        .nav-item.active { background: #34495e; color: white; border-left: 4px solid #2196F3; }
+
+        /* Основная область (справа) */
+        .content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Верхняя панель в контенте */
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        /* Контентная часть */
+        .main-content { padding: 25px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Таблица с ползунком */
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
 
         table { width: 100%; border-collapse: collapse; }
-        th { position: sticky; top: 0; background: #1976D2; color: white; padding: 15px; text-align: left; z-index: 2; }
+        thead th { position: sticky; top: 0; background: #2196F3; color: white; padding: 15px; text-align: left; z-index: 2; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #f9f9f9; }
+        tr:hover { background: #f1f4f6; }
 
-        /* Кнопки */
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; text-decoration: none; }
-        .btn-add { background: #4CAF50; color: white; margin-bottom: 15px; display: inline-block; }
-        .btn-scan { background: #ff9800; color: white; padding: 8px 15px; display: flex; align-items: center; gap: 5px; }
+        /* Кнопки и прочее */
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; text-decoration: none; display: inline-block; }
+        .btn-add { background: #4CAF50; color: white; margin-bottom: 15px; }
         .btn-delete { background: #f44336; color: white; padding: 5px 10px; font-size: 0.8em; }
 
-        /* Модальные окна */
+        /* Пагинация */
+        .pagination { display: flex; justify-content: center; list-style: none; padding: 15px 0; gap: 5px; }
+        .page-link { padding: 8px 16px; text-decoration: none; color: #2196F3; background: white; border: 1px solid #ddd; border-radius: 4px; }
+        .active .page-link { background: #2196F3; color: white; }
+
+        /* Модалки */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-        .modal-content { background: white; margin: 5% auto; padding: 25px; width: 450px; border-radius: 10px; position: relative; }
-
-        /* Окно предпросмотра (шире) */
-        .preview-content { width: 80%; height: 85%; margin: 2% auto; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .file-row { display: flex; gap: 10px; align-items: center; }
+        .modal-content { background: white; margin: 5% auto; padding: 25px; width: 450px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h2>📂 Электронный Архив</h2>
-    <div>
-        <span sec:authentication="name">User</span>
-        <a href="/logout" style="color: white; margin-left: 15px;">Выход</a>
+<div class="sidebar">
+    <div class="sidebar-header">📦 АРХИВ СИСТЕМА</div>
+    <div class="nav-menu">
+        <a href="#" class="nav-item"><span>📄</span> Документы</a>
+        <a href="/archive" class="nav-item active"><span>🗄️</span> Архив</a>
+        <a href="#" class="nav-item"><span>👥</span> Пользователи</a>
+        <a href="#" class="nav-item"><span>📚</span> Справочник</a>
+    </div>
+    <div style="padding: 20px; font-size: 0.8em; color: #7f8c8d; border-top: 1px solid #34495e;">
+        Версия 1.0.2
     </div>
 </div>
 
-<div class="main-content">
-    <div>
-        <button class="btn btn-add" onclick="toggleModal('uploadModal', true)">+ Добавить документ</button>
+<div class="content-area">
+
+    <div class="top-bar">
+        <h3 style="margin:0;">Раздел: Электронный архив</h3>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-weight: bold; color: #34495e;" sec:authentication="name">User</span>
+            <a href="/logout" class="btn" style="background: #e74c3c; color: white; padding: 5px 15px;">Выход</a>
+        </div>
     </div>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>№ Док.</th>
-                <th>Название</th>
-                <th>Категория</th>
-                <th sec:authorize="hasRole('ADMIN')">Действие</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="doc : ${documents}">
-                <td th:text="${doc.id}"></td>
-                <td th:text="${doc.docNumber}"></td>
-                <td>
-                    <a href="javascript:void(0);" th:onclick="'showPreview(\'/archive/download/' + ${doc.id} + '\')'"
-                       th:text="${doc.title}" style="color: #2196F3; text-decoration: none; font-weight: bold;"></a>
-                </td>
-                <td th:text="${doc.category}"></td>
-                <td sec:authorize="hasRole('ADMIN')">
-                    <form th:action="@{/archive/delete/{id}(id=${doc.id})}" method="post" onsubmit="return confirm('Удалить?');">
-                        <button class="btn btn-delete">Удалить</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+    <div class="main-content">
+        <div>
+            <button class="btn btn-add" onclick="toggleModal('uploadModal', true)">+ Добавить в архив</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>№ Док.</th>
+                    <th>Название</th>
+                    <th>Категория</th>
+                    <th sec:authorize="hasRole('ADMIN')">Действие</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="doc : ${documents}">
+                    <td th:text="${doc.id}"></td>
+                    <td th:text="${doc.docNumber}"></td>
+                    <td>
+                        <a href="javascript:void(0);" th:onclick="'showPreview(\'/archive/download/' + ${doc.id} + '\')'"
+                           th:text="${doc.title}" style="color: #2196F3; text-decoration: none; font-weight: bold;"></a>
+                    </td>
+                    <td th:text="${doc.category}"></td>
+                    <td sec:authorize="hasRole('ADMIN')">
+                        <form th:action="@{/archive/delete/{id}(id=${doc.id})}" method="post">
+                            <button class="btn btn-delete" onclick="return confirm('Удалить?');">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <nav th:if="${totalPages > 1}">
+            <ul class="pagination">
+                <li th:classappend="${currentPage == 0} ? 'disabled'"><a class="page-link" th:href="@{/archive(page=${currentPage - 1})}">Назад</a></li>
+                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                    <a class="page-link" th:href="@{/archive(page=${i})}" th:text="${i + 1}"></a>
+                </li>
+                <li th:classappend="${currentPage == totalPages - 1} ? 'disabled'"><a class="page-link" th:href="@{/archive(page=${currentPage + 1})}">Вперед</a></li>
+            </ul>
+        </nav>
     </div>
 </div>
 
@@ -87,44 +146,33 @@
     <div class="modal-content">
         <h3>Новый документ</h3>
         <form th:action="@{/archive/upload}" method="post" enctype="multipart/form-data">
-            <div class="form-group"><label>Название</label><input type="text" name="title" required></div>
-            <div class="form-group"><label>Номер</label><input type="text" name="docNumber"></div>
-            <div class="form-group">
-                <label>Категория</label>
-                <select name="category">
+            <div style="margin-bottom:15px;"><label style="display:block; font-weight:bold;">Название</label><input type="text" name="title" style="width:100%; padding:8px;" required></div>
+            <div style="margin-bottom:15px;"><label style="display:block; font-weight:bold;">Номер</label><input type="text" name="docNumber" style="width:100%; padding:8px;"></div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-weight:bold;">Категория</label>
+                <select name="category" style="width:100%; padding:8px;">
                     <option value="Договор">Договор</option>
                     <option value="Приказ">Приказ</option>
                     <option value="Письмо">Письмо</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Файл / Сканер</label>
-                <div class="file-row">
-                    <input type="file" name="file">
-                    <a href="/archive/scan-refresh" class="btn btn-scan">🖨️ Скан</a>
-                </div>
-            </div>
+            <div style="margin-bottom:15px;"><label style="display:block; font-weight:bold;">Файл</label><input type="file" name="file"></div>
             <button type="submit" class="btn btn-add" style="width:100%">💾 Сохранить</button>
-            <button type="button" onclick="toggleModal('uploadModal', false)" style="width:100%; background:#ccc;" class="btn">Отмена</button>
+            <button type="button" onclick="toggleModal('uploadModal', false)" style="width:100%; background:#ccc; margin-top:5px;" class="btn">Отмена</button>
         </form>
     </div>
 </div>
 
 <div id="previewModal" class="modal">
-    <div class="modal-content preview-content">
+    <div class="modal-content" style="width:80%; height:85%; margin: 2% auto;">
         <button onclick="toggleModal('previewModal', false)" style="float:right" class="btn btn-delete">Закрыть</button>
         <iframe id="previewFrame" src="" style="width:100%; height:95%; border:none; margin-top:10px;"></iframe>
     </div>
 </div>
 
 <script>
-    function toggleModal(id, show) {
-        document.getElementById(id).style.display = show ? 'block' : 'none';
-    }
-    function showPreview(url) {
-        document.getElementById('previewFrame').src = url;
-        toggleModal('previewModal', true);
-    }
+    function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'block' : 'none'; }
+    function showPreview(url) { document.getElementById('previewFrame').src = url; toggleModal('previewModal', true); }
 </script>
 
 </body>
