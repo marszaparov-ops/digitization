@@ -73,8 +73,16 @@ public class ArchiveController {
             Path path = Paths.get(UPLOAD_DIR).resolve(doc.getFileName());
             Resource resource = new UrlResource(path.toUri());
 
+            // Определяем тип файла (Content-Type)
+            String contentType = doc.getFileType();
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
+                    .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                    // "inline" заставляет браузер открыть файл, а не качать его
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + doc.getFileName() + "\"")
                     .body(resource);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();

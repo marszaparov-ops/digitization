@@ -55,7 +55,11 @@
         <td th:text="${doc.id}"></td>
         <td th:text="${doc.docNumber}"></td>
         <td>
-            <a th:href="@{/archive/download/{id}(id=${doc.id})}" th:text="${doc.title}" style="color: #2196F3; font-weight: bold; text-decoration: none;"></a>
+            <a href="javascript:void(0);"
+               th:onclick="'openPreview(\'/archive/download/' + ${doc.id} + '\')'"
+               th:text="${doc.title}"
+               style="color: #2196F3; font-weight: bold; text-decoration: none; cursor: pointer;">
+            </a>
         </td>
         <td th:text="${doc.category}"></td>
         <td sec:authorize="hasRole('ADMIN')">
@@ -99,6 +103,25 @@
     </div>
 
 </div>
+
+<div id="previewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000;">
+    <div style="position:relative; width:80%; height:90%; margin:2% auto; background:#fff; border-radius:8px; padding:10px;">
+        <button onclick="closePreview()" style="position:absolute; top:-15px; right:-15px; background:#ff4d4d; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">X</button>
+        <iframe id="previewFrame" src="" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+</div>
+
+<script>
+    function openPreview(url) {
+        document.getElementById('previewFrame').src = url;
+        document.getElementById('previewModal').style.display = 'block';
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').style.display = 'none';
+        document.getElementById('previewFrame').src = '';
+    }
+</script>
 
 </body>
 </html>
