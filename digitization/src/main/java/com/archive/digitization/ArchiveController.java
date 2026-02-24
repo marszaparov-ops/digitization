@@ -26,6 +26,9 @@ public class ArchiveController {
     // Главная страница
     @GetMapping("/archive")
     public String archivePage(Model model) {
+        // Достаем всех пользователей, чтобы таблица на главной не была пустой
+        List<User> users = userRepository.findAll();
+        model.addAttribute("users", users);
         return "archive";
     }
 
