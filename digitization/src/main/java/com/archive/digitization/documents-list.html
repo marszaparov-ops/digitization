@@ -1,16 +1,49 @@
-<thead>
-<tr>
-    <th>ID</th>
-    <th>Название</th>
-    <th>Имя файла</th> <th>Формат</th>
-    <th>Дата загрузки</th>
-</tr>
-</thead>
-<tbody>
-<tr th:each="doc : ${documents}">
-    <td th:text="${doc.id}"></td>
-    <td th:text="${doc.title}" style="font-weight: 600;"></td>
-    <td th:text="${doc.fileName}"></td> <td th:text="${doc.fileType}"></td>
-    <td th:text="${#temporals.format(doc.uploadDate, 'dd.MM.yyyy HH:mm')}"></td>
-</tr>
-</tbody>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Архив Документов</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background-color: #f8f9fa; }
+        .header { background: #2196F3; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .container { padding: 20px; }
+        .btn { padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; color: white; }
+        .btn-add { background: #4CAF50; }
+        .btn-nav { background: rgba(255,255,255,0.2); margin-right: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th { background: #2196F3; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f1f1f1; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <strong>СИСТЕМА ОЦИФРОВКИ: ДОКУМЕНТЫ</strong>
+    <div>
+        <a th:href="@{/archive/users}" class="btn btn-nav">Пользователи</a>
+        <a th:href="@{/logout}" class="btn" style="background:#f44336">Выход</a>
+    </div>
+</div>
+<div class="container">
+    <button class="btn btn-add">+ Создать документ</button>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Имя файла</th>
+            <th>Тип</th>
+            <th>Дата</th>
+        </tr>
+        </thead>
+        <tbody>
+        <<tr th:each="doc : ${documents}">
+            <td th:text="${doc.id}"></td>
+            <td th:text="${doc.title}"></td>
+            <td th:text="${doc.fileName}"></td> <td th:text="${doc.fileType}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

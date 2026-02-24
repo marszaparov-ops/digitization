@@ -18,21 +18,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/fix-admin", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/archive/users/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // Разрешаем доступ ко всему без пароля
                 )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/archive", true)
-                        .permitAll()
-                )
-                .logout(logout -> logout.logoutSuccessUrl("/login").permitAll());
-
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
         return http.build();
     }
 }

@@ -4,85 +4,45 @@
     <meta charset="UTF-8">
     <title>Управление персоналом</title>
     <style>
-        /* Весь современный код стиля теперь прямо здесь */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { display: flex; background-color: #f4f7f6; color: #333; min-height: 100vh; }
-
-        .sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; position: fixed; height: 100%; }
-        .sidebar h2 { color: #3498db; text-align: center; margin-bottom: 30px; font-size: 20px; }
-        .sidebar ul { list-style: none; }
-        .sidebar ul li a { color: #bdc3c7; text-decoration: none; display: block; padding: 12px; border-radius: 5px; transition: 0.3s; }
-        .sidebar ul li a:hover { background: #34495e; color: white; }
-
-        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
-        h1 { margin-bottom: 25px; color: #2c3e50; font-weight: 400; }
-
-        .form-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .form-group { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
-
-        input, select { padding: 12px; border: 1px solid #dee2e6; border-radius: 8px; flex: 1; outline: none; }
-        input:focus { border-color: #3498db; }
-
-        button { padding: 12px 25px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #2980b9; }
-
-        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; color: #6c757d; font-size: 13px; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #f1f1f1; font-size: 15px; }
-        tr:hover { background: #fcfcfc; }
-
-        .role-badge { background: #e3f2fd; color: #1976d2; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .status-tag { color: #2ecc71; font-weight: 600; }
+        body { font-family: sans-serif; margin: 0; background-color: #f8f9fa; }
+        .header { background: #2c3e50; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .container { padding: 20px; }
+        .btn { padding: 8px 15px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; color: white; }
+        .btn-add { background: #4CAF50; }
+        .btn-nav { background: rgba(255,255,255,0.2); margin-right: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+        th { background: #2c3e50; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
-
-<nav class="sidebar">
-    <h2>ARCHIVE SYSTEM</h2>
-    <ul>
-        <li><a th:href="@{/archive}">🏠 Главная</a></li>
-        <li><a th:href="@{/archive/users}">👥 Пользователи</a></li>
-        <li><form th:action="@{/logout}" method="post"><button type="submit" style="background:none; color:#e74c3c; padding:12px; width:100%; text-align:left;">🚪 Выход</button></form></li>
-    </ul>
-</nav>
-
-<main class="main-content">
-    <h1>Управление персоналом</h1>
-
-    <section class="form-card">
-        <form th:action="@{/archive/users/add}" method="post" class="form-group">
-            <input type="text" name="username" placeholder="Логин" required>
-            <input type="password" name="password" placeholder="Пароль" required>
-            <select name="role">
-                <option value="ROLE_USER">Сотрудник</option>
-                <option value="ROLE_ADMIN">Администратор</option>
-            </select>
-            <button type="submit">Добавить +</button>
-        </form>
-    </section>
-
-    <section class="table-container">
-        <table>
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Пользователь</th>
-                <th>Уровень доступа</th>
-                <th>Состояние</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="user : ${users}">
-                <td th:text="${user.id}"></td>
-                <td th:text="${user.username}" style="font-weight: 600;"></td>
-                <td><span class="role-badge" th:text="${user.role}"></span></td>
-                <td class="status-tag">● Активен</td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-</main>
-
+<div class="header">
+    <strong>УПРАВЛЕНИЕ ДОСТУПОМ</strong>
+    <div>
+        <a th:href="@{/archive/documents}" class="btn btn-nav">К документам</a>
+        <a th:href="@{/logout}" class="btn" style="background:#f44336">Выход</a>
+    </div>
+</div>
+<div class="container">
+    <button class="btn btn-add">+ Добавить сотрудника</button>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Логин</th>
+            <th>Роль</th>
+            <th>Статус</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.username}" style="font-weight:bold;"></td>
+            <td th:text="${user.role}"></td>
+            <td th:text="${user.enabled ? 'Активен' : 'Заблокирован'}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>
