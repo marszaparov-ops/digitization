@@ -20,6 +20,7 @@ public class ArchiveController {
     @Autowired
     private DocumentRepository documentRepository;
 
+    // Используем один путь для всех файлов
     private final String UPLOAD_DIR = "E:/Work/archive/archive-storage/";
 
     @GetMapping("/archive")
@@ -29,9 +30,13 @@ public class ArchiveController {
         return "archive";
     }
 
+    // ИСПРАВЛЕННЫЙ МЕТОД: принимает файл и данные из формы
     @PostMapping("/archive/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
-                             @RequestParam("title") String title) {
+                             @RequestParam(value = "title", required = false) String title,
+                             @RequestParam(value = "docNumber", required = false) String docNumber,
+                             @RequestParam(value = "category", required = false) String category,
+                             @RequestParam(value = "description", required = false) String description) {
         try {
             if (!file.isEmpty()) {
                 Path uploadPath = Paths.get(UPLOAD_DIR);
@@ -43,11 +48,17 @@ public class ArchiveController {
                 Path filePath = uploadPath.resolve(fileName);
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
+                // Сохраняем в базу данных со всеми полями
                 Document doc = new Document();
-                doc.setTitle(title);
+                doc.setTitle(title != null ? title : file.getOriginalFilename());
+                doc.setDocNumber(docNumber);
+                doc.setCategory(category);
+                doc.setDescription(description);
                 doc.setFileName(fileName);
                 doc.setFileType(file.getContentType());
+
                 documentRepository.save(doc);
+                System.out.println("Файл сохранен и записан в базу: " + fileName);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -55,7 +66,6 @@ public class ArchiveController {
         return "redirect:/archive";
     }
 
-    // МЕТОД ДЛЯ СКАЧИВАНИЯ
     @GetMapping("/archive/download/{id}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long id) {
         try {
@@ -71,7 +81,6 @@ public class ArchiveController {
         }
     }
 
-    // МЕТОД ДЛЯ УДАЛЕНИЯ
     @PostMapping("/archive/delete/{id}")
     public String deleteDocument(@PathVariable Long id) {
         try {
@@ -83,6 +92,13 @@ public class ArchiveController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return "redirect:/archive";
+    }
+
+    // Метод для кнопки сканера (чтобы не было 404)
+    @GetMapping("/archive/scan-refresh")
+    public String scanRefresh() {
+        System.out.println("Запрос на обновление данных со сканера...");
         return "redirect:/archive";
     }
 }
