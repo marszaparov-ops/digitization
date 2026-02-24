@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление персоналом</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f4f7f6; }
+        h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+
+        .form-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; }
+        .form-box h3 { margin-top: 0; color: #4CAF50; }
+
+        input, select, button { display: block; width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+        .btn-add { background: #4CAF50; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-add:hover { background: #45a049; }
+
+        .btn-delete { background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-delete:hover { background: #cc0000; }
+    </style>
+</head>
+<body>
+
+<h2>Список сотрудников архива</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Логин</th>
+        <th>Роль</th>
+        <th>Действие</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="u : ${allUsers}">
+        <td th:text="${u.id}"></td>
+        <td th:text="${u.username}"></td>
+        <td th:text="${u.role}"></td>
+        <td>
+            <form th:if="${u.username != 'admin'}"
+                  th:action="@{/admin/users/delete}"
+                  method="post"
+                  onsubmit="return confirm('Вы действительно хотите удалить этого сотрудника?');">
+
+                <input type="hidden" name="id" th:value="${u.id}">
+                <button type="submit" class="btn-delete">Удалить</button>
+            </form>
+            <span th:if="${u.username == 'admin'}" style="color: #999; font-style: italic;">Системный аккаунт</span>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="form-box">
+    <h3>Новый сотрудник</h3>
+    <form th:action="@{/admin/users/add}" method="post">
+        <label>Логин:</label>
+        <input type="text" name="username" placeholder="ivan_ivanov" required>
+
+        <label>Пароль:</label>
+        <input type="password" name="password" placeholder="Пароль" required>
+
+        <label>Доступ:</label>
+        <select name="role">
+            <option value="USER">Сотрудник (USER)</option>
+            <option value="ADMIN">Администратор (ADMIN)</option>
+        </select>
+
+        <button type="submit" class="btn-add">Создать аккаунт</button>
+    </form>
+</div>
+
+</body>
+</html>
