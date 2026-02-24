@@ -17,30 +17,24 @@ public class ArchiveController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Страница логина
     @GetMapping("/login")
     public String loginPage() {
         return "login";
     }
 
-    // Главная страница
     @GetMapping("/archive")
-    public String archivePage(Model model) {
-        // Достаем всех пользователей, чтобы таблица на главной не была пустой
-        List<User> users = userRepository.findAll();
-        model.addAttribute("users", users);
+    public String archivePage() {
         return "archive";
     }
 
-    // Список пользователей (только для админа)
+    // ВАЖНО: название метода и возвращаемое имя файла
     @GetMapping("/archive/users")
     public String usersPage(Model model) {
         List<User> users = userRepository.findAll();
         model.addAttribute("users", users);
-        return "users";
+        return "users-list"; // Ищет именно users-list.html
     }
 
-    // Сохранение нового пользователя
     @PostMapping("/archive/users/add")
     public String addUser(@ModelAttribute User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -49,7 +43,6 @@ public class ArchiveController {
         return "redirect:/archive/users";
     }
 
-    // Временный фикс, если не пускает
     @GetMapping("/fix-admin")
     @ResponseBody
     public String fixAdmin() {
@@ -59,6 +52,20 @@ public class ArchiveController {
         admin.setRole("ROLE_ADMIN");
         admin.setEnabled(true);
         userRepository.save(admin);
-        return "Аккаунт admin/admin обновлен!";
+        return "Admin fixed! Login: admin / Pass: admin";
+    }
+    @Autowired
+    private DocumentRepository documentRepository;
+
+    @GetMapping("/archive/documents")
+    public String documentsPage(Model model) {
+        model.addAttribute("documents", documentRepository.findAll());
+        return "documents-list";
+    }
+
+    @PostMapping("/archive/documents/add")
+    public String addDocument(@ModelAttribute Document document) {
+        documentRepository.save(document);
+        return "redirect:/archive/documents";
     }
 }

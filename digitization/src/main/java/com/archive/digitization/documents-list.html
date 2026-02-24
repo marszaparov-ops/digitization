@@ -1,0 +1,16 @@
+<thead>
+<tr>
+    <th>ID</th>
+    <th>Название</th>
+    <th>Имя файла</th> <th>Формат</th>
+    <th>Дата загрузки</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="doc : ${documents}">
+    <td th:text="${doc.id}"></td>
+    <td th:text="${doc.title}" style="font-weight: 600;"></td>
+    <td th:text="${doc.fileName}"></td> <td th:text="${doc.fileType}"></td>
+    <td th:text="${#temporals.format(doc.uploadDate, 'dd.MM.yyyy HH:mm')}"></td>
+</tr>
+</tbody>

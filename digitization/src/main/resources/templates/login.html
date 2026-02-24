@@ -9,14 +9,8 @@
     Неверный логин или пароль
 </div>
 <form th:action="@{/login}" method="post">
-    <div>
-        <label>Логин:</label>
-        <input type="text" name="username" required/>
-    </div>
-    <div>
-        <label>Пароль:</label>
-        <input type="password" name="password" required/>
-    </div>
+    <input type="text" name="username" placeholder="Логин" required>
+    <input type="password" name="password" placeholder="Пароль" required>
     <button type="submit">Войти</button>
 </form>
 </body>

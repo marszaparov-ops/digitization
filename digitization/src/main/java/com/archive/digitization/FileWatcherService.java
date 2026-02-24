@@ -1,13 +1,9 @@
 package com.archive.digitization;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 import java.nio.file.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.io.IOException;
 
 @Service
 public class FileWatcherService {
@@ -15,39 +11,29 @@ public class FileWatcherService {
     @Autowired
     private DocumentRepository documentRepository;
 
-    private final String WATCH_DIR = "E:/Work/archive/archive-storage/";
+    // ... (код инициализации WatchService)
 
-    @PostConstruct
-    public void startWatching() {
-        // Запускаем наблюдение в отдельном потоке, чтобы не тормозить программу
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
-                Path path = Paths.get(WATCH_DIR);
-                path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
+    private void processEvent(WatchEvent<?> event, Path dir) {
+        WatchEvent.Kind<?> kind = event.kind();
 
-                while (true) {
-                    WatchKey key = watchService.take();
-                    for (WatchEvent<?> event : key.pollEvents()) {
-                        Path fileName = (Path) event.context();
+        if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+            // Вот здесь мы получаем правильный путь к файлу
+            Path filePath = (Path) event.context();
+            String fileName = filePath.getFileName().toString();
 
-                        // Когда сканер создал файл, записываем его в базу
-                        saveToDatabase(fileName.toString());
-                    }
-                    key.reset();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+            Document doc = new Document();
+            doc.setTitle("Автоматическая загрузка");
+            doc.setFileName(fileName); // Теперь переменная определена выше
+            doc.setFileType(getFileExtension(fileName));
+
+            documentRepository.save(doc);
+            System.out.println("Документ сохранен: " + fileName);
+        }
     }
 
-    private void saveToDatabase(String fileName) {
-        Document doc = new Document();
-        doc.setTitle("Скан из BookTEK: " + fileName);
-        doc.setFileName(fileName);
-        doc.setFileType("image/jpeg"); // Или определять автоматически
-        documentRepository.save(doc);
-        System.out.println("Файл отсканирован и добавлен в базу: " + fileName);
+    private String getFileExtension(String fileName) {
+        int lastIndexOf = fileName.lastIndexOf(".");
+        if (lastIndexOf == -1) return "Unknown";
+        return fileName.substring(lastIndexOf + 1).toUpperCase();
     }
 }
