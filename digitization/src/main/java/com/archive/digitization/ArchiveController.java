@@ -38,19 +38,19 @@ public class ArchiveController {
                              @RequestParam(value = "category", required = false) String category,
                              @RequestParam(value = "description", required = false) String description) {
         try {
-            if (!file.isEmpty()) {
+            if (file != null && !file.isEmpty()) {
                 Path uploadPath = Paths.get(UPLOAD_DIR);
                 if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
+                    Files.createDirectories(uploadPath); // Создаем папки, если их нет
                 }
 
                 String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
                 Path filePath = uploadPath.resolve(fileName);
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                // Сохраняем в базу данных со всеми полями
                 Document doc = new Document();
-                doc.setTitle(title != null ? title : file.getOriginalFilename());
+                // Если заголовок пустой, берем имя файла
+                doc.setTitle((title == null || title.isEmpty()) ? file.getOriginalFilename() : title);
                 doc.setDocNumber(docNumber);
                 doc.setCategory(category);
                 doc.setDescription(description);
@@ -58,11 +58,14 @@ public class ArchiveController {
                 doc.setFileType(file.getContentType());
 
                 documentRepository.save(doc);
-                System.out.println("Файл сохранен и записан в базу: " + fileName);
             }
         } catch (IOException e) {
             e.printStackTrace();
+            // Если ошибка — выводим её в консоль, чтобы мы видели причину
+            System.out.println("ОШИБКА ЗАГРУЗКИ: " + e.getMessage());
         }
+
+        // Возвращаемся строго на главную страницу архива
         return "redirect:/archive";
     }
 
