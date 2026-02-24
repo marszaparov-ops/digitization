@@ -2,147 +2,90 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Цифровой Архив | Система</title>
+    <title>Электронный Архив</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
-
-        /* Sidebar */
-        .sidebar { width: 250px; background: #2c3e50; color: white; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        .sidebar-header { padding: 20px; background: #1a252f; text-align: center; font-size: 1.2em; font-weight: bold; }
+        .sidebar { width: 250px; background: #2c3e50; color: white; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; background: #1a252f; text-align: center; font-weight: bold; }
         .nav-menu { flex: 1; padding: 10px 0; }
-        .nav-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: #bdc3c7; text-decoration: none; transition: 0.3s; border-left: 4px solid transparent; }
+        .nav-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: #bdc3c7; text-decoration: none; border-left: 4px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #34495e; color: white; border-left: 4px solid #2196F3; }
-
-        /* Main Content */
         .content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .top-bar { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .main-content { padding: 25px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Tables */
         .table-container { flex: 1; overflow-y: auto; background: white; border-radius: 8px; border: 1px solid #ddd; }
         table { width: 100%; border-collapse: collapse; }
-        thead th { position: sticky; top: 0; background: #2196F3; color: white; padding: 15px; text-align: left; z-index: 2; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #f1f4f6; }
-
-        /* UI Elements */
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; text-decoration: none; display: inline-block; }
+        thead th { position: sticky; top: 0; background: #2196F3; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
         .btn-add { background: #4CAF50; color: white; margin-bottom: 15px; }
-        .btn-delete { background: #f44336; color: white; padding: 5px 10px; font-size: 0.8em; }
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-        .modal-content { background: white; margin: 5% auto; padding: 25px; width: 450px; border-radius: 10px; }
+        .modal-content { background: white; margin: 5% auto; padding: 25px; width: 400px; border-radius: 10px; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
     </style>
 </head>
 <body>
-
 <div class="sidebar">
-    <div class="sidebar-header">📦 АРХИВ СИСТЕМА</div>
+    <div class="sidebar-header">📦 СИСТЕМА АРХИВ</div>
     <div class="nav-menu">
-        <a th:href="@{/archive}" class="nav-item" th:classappend="${section == 'documents'} ? 'active'">
-            <span>📄</span> Документы
-        </a>
-        <a th:href="@{/archive/history}" class="nav-item" th:classappend="${section == 'history'} ? 'active'">
-            <span>🗄️</span> Архив
-        </a>
-        <a th:href="@{/archive/users}" class="nav-item" th:classappend="${section == 'users'} ? 'active'">
-            <span>👥</span> Пользователи
-        </a>
-        <a href="#" class="nav-item"><span>📚</span> Справочник</a>
+        <a th:href="@{/archive}" class="nav-item" th:classappend="${section == 'documents'} ? 'active'">📄 Документы</a>
+        <a th:href="@{/archive/history}" class="nav-item" th:classappend="${section == 'history'} ? 'active'">🗄️ Архив</a>
+        <a th:href="@{/archive/users}" class="nav-item" th:classappend="${section == 'users'} ? 'active'">👥 Пользователи</a>
     </div>
 </div>
 
 <div class="content-area">
     <div class="top-bar">
-        <h3 style="margin:0;">Цифровой Архив v1.0</h3>
-        <div>
-            <span style="font-weight:bold;" sec:authentication="name">User</span>
-            <a th:href="@{/logout}" style="margin-left:15px; color:#e74c3c; text-decoration:none;">Выход</a>
-        </div>
+        <h3 th:text="${section == 'documents' ? 'Реестр документов' : (section == 'history' ? 'История действий' : 'Управление персоналом')}"></h3>
+        <div><span th:text="${#authentication.name}"></span> | <a th:href="@{/logout}" style="color:red">Выход</a></div>
     </div>
 
     <div class="main-content">
         <div th:if="${section == 'documents'}">
-            <button class="btn btn-add" onclick="toggleModal('uploadModal', true)">+ Добавить документ</button>
+            <button class="btn btn-add" onclick="toggleModal('docModal', true)">+ Новый документ</button>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>№ Док.</th><th>Название</th><th>Категория</th></tr></thead>
+                    <tbody><tr th:each="d : ${documents}"><td th:text="${d.id}"></td><td th:text="${d.docNumber}"></td><td th:text="${d.title}"></td><td th:text="${d.category}"></td></tr></tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="table-container" th:if="${section == 'documents'}">
-            <table>
-                <thead>
-                <tr><th>ID</th><th>№ Док.</th><th>Название</th><th>Категория</th><th>Действие</th></tr>
-                </thead>
-                <tbody>
-                <tr th:each="doc : ${documents}">
-                    <td th:text="${doc.id}"></td>
-                    <td th:text="${doc.docNumber}"></td>
-                    <td th:text="${doc.title}"></td>
-                    <td th:text="${doc.category}"></td>
-                    <td>
-                        <form th:action="@{/archive/delete/{id}(id=${doc.id})}" method="post">
-                            <button class="btn btn-delete" onclick="return confirm('Удалить?')">Удалить</button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+        <div th:if="${section == 'history'}">
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Дата</th><th>Юзер</th><th>Действие</th><th>Инфо</th></tr></thead>
+                    <tbody><tr th:each="l : ${logs}"><td th:text="${l.getFormattedDate()}"></td><td th:text="${l.username}"></td><td th:text="${l.action}"></td><td th:text="${l.details}"></td></tr></tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="table-container" th:if="${section == 'history'}">
-            <table>
-                <thead>
-                <tr><th>Дата</th><th>Сотрудник</th><th>Действие</th><th>Детали</th></tr>
-                </thead>
-                <tbody>
-                <tr th:each="log : ${logs}">
-                    <td th:text="${log.getFormattedDate()}"></td>
-                    <td th:text="${log.username}"></td>
-                    <td th:text="${log.action}"></td>
-                    <td th:text="${log.details}"></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="table-container" th:if="${section == 'users'}">
-            <table>
-                <thead>
-                <tr><th>ID</th><th>Логин</th><th>Роль</th><th>Статус</th></tr>
-                </thead>
-                <tbody>
-                <tr th:each="user : ${users}">
-                    <td th:text="${user.id}"></td>
-                    <td th:text="${user.username}"></td>
-                    <td th:text="${user.role}"></td>
-                    <td>Активен</td>
-                </tr>
-                </tbody>
-            </table>
+        <div th:if="${section == 'users'}">
+            <button class="btn btn-add" onclick="toggleModal('userModal', true)">+ Добавить сотрудника</button>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Логин</th><th>Роль</th><th>Статус</th></tr></thead>
+                    <tbody><tr th:each="u : ${users}"><td th:text="${u.id}"></td><td th:text="${u.username}"></td><td th:text="${u.role}"></td><td>Активен</td></tr></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="uploadModal" class="modal">
+<div id="userModal" class="modal">
     <div class="modal-content">
-        <h3>Новый документ</h3>
-        <form th:action="@{/archive/upload}" method="post" enctype="multipart/form-data">
-            <div style="margin-bottom:10px;"><label>Название</label><input type="text" name="title" style="width:100%" required></div>
-            <div style="margin-bottom:10px;"><label>Номер</label><input type="text" name="docNumber" style="width:100%"></div>
-            <div style="margin-bottom:10px;">
-                <label>Категория</label>
-                <select name="category" style="width:100%">
-                    <option value="Договор">Договор</option>
-                    <option value="Приказ">Приказ</option>
-                    <option value="Письмо">Письмо</option>
-                </select>
-            </div>
-            <div style="margin-bottom:15px;"><label>Файл</label><input type="file" name="file" required></div>
-            <button type="submit" class="btn btn-add" style="width:100%">💾 Сохранить</button>
-            <button type="button" onclick="toggleModal('uploadModal', false)" style="width:100%; background:#ccc; margin-top:5px;" class="btn">Отмена</button>
+        <h3>Новый сотрудник</h3>
+        <form th:action="@{/archive/users/add}" method="post">
+            <label>Логин</label><input type="text" name="username" required>
+            <label>Пароль</label><input type="password" name="password" required>
+            <label>Роль</label>
+            <select name="role"><option value="ROLE_USER">USER</option><option value="ROLE_ADMIN">ADMIN</option></select>
+            <button type="submit" class="btn btn-add" style="width:100%">Создать</button>
+            <button type="button" onclick="toggleModal('userModal', false)" style="width:100%; background:#ccc; margin-top:5px" class="btn">Отмена</button>
         </form>
     </div>
 </div>
 
-<script>
-    function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'block' : 'none'; }
-</script>
+<script>function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'block' : 'none'; }</script>
 </body>
 </html>
